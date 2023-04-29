@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+
+{% block head %}
+<title>Transfer - Allowance</title>
+{% endblock %}
+
+{% block body %}
+<h1>logged in as {{ account["username"] }}</h1>
+<h2>Balance: {{ account["balance"] }}</h2>
+<form method="post">
+    <h2>Recipient: </h2>
+    <input type="text" name="name">
+    <h2>Amount: </h2>
+    <input type="number" name="amount" step="0.01">
+    <br><br>
+    <button type="submit">Transfer</button>
+</form>
+
+{%- with messages = get_flashed_messages() -%}
+    {%- if messages -%}
+        <div class="flashes">
+            {%- for message in messages -%}
+                {% if message == "Transfer complete!" %}
+                <p style="color: green;">{{ message }}</p>
+                {% else %}
+                <p>{{ message }}</p>
+                {% endif %}
+            {%- endfor -%}
+        </div>
+    {%- endif -%}
+{%- endwith -%}
+
+<br>
+<a href="/">Home</a>
+{% endblock %}

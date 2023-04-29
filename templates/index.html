@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+
+{% block head %}
+<title>Home - Allowance</title>
+{% endblock %}
+
+{% block body %}
+<h1>logged in as {{ account["username"] }}</h1>
+<h2>Balance: {{ account["balance"] }}</h2>
+{% if account["administrator"] %}
+<a href="/adminpanel">Admin Panel</a>
+{% endif %}
+<a href="/transfer">Transfer</a>
+<a href="/logout">Log out</a>
+{% endblock %}

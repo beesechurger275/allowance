@@ -1,0 +1,12 @@
+html {
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+.large {
+    font-size: 50px;
+}
+
+.flashes {
+    text-align: center;
+    color: red;
+}
