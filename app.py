@@ -28,7 +28,7 @@ def index():
     account["username"] = username
     
     query = f"""
-    SELECT administrator FROM users WHERE name='{account["username"]}'
+    SELECT administrator FROM users WHERE name='{account["username"]}';
     """
 
     admin = this_db.readOne(query)
@@ -135,7 +135,7 @@ def transfer():
         this_db.connect("data.sql")
 
         query = f"""
-        SELECT id FROM users WHERE name='{username}'
+        SELECT id FROM users WHERE name='{username}';
         """
 
         q = this_db.readOne(query)
@@ -144,13 +144,13 @@ def transfer():
         balance = 0
 
         q = f"""
-        SELECT SUM(transferamount) FROM transactions WHERE user_id_to='{fromid}'
+        SELECT SUM(transferamount) FROM transactions WHERE user_id_to='{fromid}';
         """
         h = this_db.read(q)
         add = h[0][0]
 
         q = f"""
-        SELECT SUM(transferamount) FROM transactions WHERE user_id_from='{fromid}'
+        SELECT SUM(transferamount) FROM transactions WHERE user_id_from='{fromid}';
         """
         h = this_db.read(q)
         sub = h[0][0]
@@ -284,6 +284,56 @@ def login():
         return redirect(url_for("index"))
 
 
+@app.route("/account", methods=["GET", "POST"])
+def account():
+    if request.method == "GET":
+        try:
+            test = session['username'] # try to cause a KeyError lmao
+            test = None
+            return render_template("account.html")
+        except KeyError:
+            return redirect(url_for("login"))
+    
+    print(request.form["current"])
+
+    if request.form["current"] == '' or request.form["new"] == '' or request.form["confirm"] == '':
+        flash("Fill out form completely!")
+        return render_template("account.html")
+
+    this_db = db()
+    this_db.connect("data.sql")
+
+    query = f"""
+    SELECT hash FROM users WHERE name='{session["username"]}';
+    """
+    read = this_db.readOne(query)
+    current = read[0]
+
+    currentForm = hashlib.sha256(bytes(request.form['current'], "utf-8")).hexdigest()
+
+    new = hashlib.sha256(bytes(request.form['new'], "utf-8")).hexdigest()
+    confirm = hashlib.sha256(bytes(request.form['confirm'], "utf-8")).hexdigest()
+
+    if currentForm != current:
+        print("password entered for current incorrect")
+        flash("Current password incorrect")
+        return render_template("account.html")
+
+    if new != confirm:
+        print("Password confirmation incorrect")
+        flash("Passwords do not match")
+        return render_template("account.html")
+
+    query = f"""
+    UPDATE users SET hash='{new}' WHERE name = '{session['username']}';
+    """
+
+    this_db.execute(query)
+
+    flash("Password change complete!")
+    return render_template("account.html")
+
+    
 @app.route("/logout")
 def logout():
     session.pop('username', None)

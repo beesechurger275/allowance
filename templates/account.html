@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+
+{% block head %}
+<title>Account Settings - Allowance</title>
+{% endblock %}
+
+{% block body %}
+<h1>Account Settings</h1>
+<h2>logged in as {{ session["username"] }}</h2>
+<form method="post">
+    <h3>Current password:</h3>
+    <input type="password" name="current">
+    <h3>New password:</h3>
+    <input type="password" name="new">
+    <h3>Confirm:</h3>
+    <input type="password" name="confirm"><br><br>
+    <button type="submit">Change Password</button>
+</form>
+{%- with messages = get_flashed_messages() -%}
+    {%- if messages -%}
+        <div class="flashes">
+            {%- for message in messages -%}
+                {% if message == "Password change complete!" %}
+                <p style="color: green;">{{ message }}</p>
+                {% else %}
+                <p>{{ message }}</p>
+                {% endif %}
+            {%- endfor -%}
+        </div>
+    {%- endif -%}
+{%- endwith -%}
+<br>
+<a href="/">Home</a>
+{% endblock %}
