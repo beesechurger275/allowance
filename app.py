@@ -1,8 +1,10 @@
 from db import db
+from sqlsafe import sqlsafe, sqlsafeint, sqlsafefloat
 from flask import Flask, render_template, session, request, make_response, redirect, url_for, abort, flash
 from markupsafe import escape
 import init_db
 import hashlib
+from sqlite3 import OperationalError
 
 database = db()
 database.connect("data.sql")
@@ -26,16 +28,16 @@ def index():
     this_db.connect("data.sql")
     account = {}
     account["username"] = username
-    
+
     query = f"""
-    SELECT administrator FROM users WHERE name='{account["username"]}';
+    SELECT administrator FROM users WHERE name='{sqlsafe(account["username"])}';
     """
 
     admin = this_db.readOne(query)
     account["administrator"] = admin[0]
 
     query = f"""
-        SELECT id FROM users WHERE name='{account["username"]}';
+        SELECT id FROM users WHERE name='{sqlsafe(account["username"])}';
     """
 
     userId = this_db.readOne(query)
@@ -85,7 +87,7 @@ def transfer():
         account["username"] = username
 
         query = f"""
-            SELECT id FROM users WHERE name='{account["username"]}';
+            SELECT id FROM users WHERE name='{sqlsafe(account["username"])}';
         """
 
         userId = this_db.readOne(query)
@@ -135,7 +137,7 @@ def transfer():
         this_db.connect("data.sql")
 
         query = f"""
-        SELECT id FROM users WHERE name='{username}';
+        SELECT id FROM users WHERE name='{sqlsafe(username)}';
         """
 
         q = this_db.readOne(query)
@@ -172,11 +174,10 @@ def transfer():
             return redirect(url_for("transfer"))
 
         query = f"""
-        SELECT id FROM users WHERE name='{request.form["name"]}'
+        SELECT id FROM users WHERE name='{sqlsafe(request.form["name"])}'
         """
 
         q = this_db.readOne(query)
-        print(toid)
         try:
             toid = q[0]
         except TypeError:
@@ -188,7 +189,7 @@ def transfer():
             return redirect(url_for("transfer"))
 
         query = f"""
-        INSERT INTO transactions (transferamount, user_id_to, user_id_from) VALUES ({request.form["amount"]}, {toid}, {fromid}); 
+        INSERT INTO transactions (transferamount, user_id_to, user_id_from) VALUES ({sqlsafefloat(request.form["amount"])}, {toid}, {fromid}); 
         """
 
         this_db.execute(query)
@@ -198,21 +199,133 @@ def transfer():
         flash("Transfer complete!")
         return redirect(url_for("transfer"))
 
+@app.route("/viewaccounts")
+def viewall():
+    this_db = db()
+    this_db.connect("data.sql")
+    query = f"""
+    SELECT administrator FROM users WHERE name='{sqlsafe(session['username'])}'
+    """
+    isAdmin = this_db.readOne(query)[0]
+    print(isAdmin)
+    if not isAdmin:
+        return redirect(url_for("index"))
+    query = """
+    SELECT id FROM users ORDER BY id;
+    """
+    userids = this_db.read(query)
+    bals = {}
 
-@app.route("/adminpanel/<page>", methods=["GET", "POST"])
-def adminpanel(page):
+    query = f"""
+    SELECT name FROM users ORDER BY id;
+    """
+    usernames = this_db.read(query)
+    print(usernames)
+    for id in userids:
+        a = id[0]
+        query = f"""
+        SELECT SUM(transferamount) FROM transactions WHERE user_id_to='{a}';
+        """
+        plus = this_db.readOne(query)[0]
+        query = f"""
+        SELECT SUM(transferamount) FROM transactions WHERE user_id_from='{a}';
+        """
+        minus = this_db.readOne(query)[0]
+        if plus == None:
+            plus = 0
+        if minus == None:
+            minus = 0
+        bals[a] = plus - minus
+
+    return render_template("viewaccounts.html", bals=bals, usernames=usernames)
+
+
+@app.route("/accounts/<name>") # TODO display: ID, Balance, Transaction History
+def individualaccount(name):
+    account = {}
+    transactions = []
+    account['username'] = sqlsafe(name)
+    this_db = db()
+    this_db.connect("data.sql")
+    query = f"""
+    SELECT id FROM users WHERE name="{account['username']}"
+    """
+    account['id'] = this_db.read(query)[0][0]
+
+    query = f"""
+    SELECT SUM(transferamount) FROM transactions WHERE user_id_to='{account['id']}';
+    """
+    add = this_db.readOne(query)[0]
+    if add == None:
+        add = 0
+
+    query = f"""
+    SELECT SUM(transferamount) FROM transactions WHERE user_id_from='{account['id']}';
+    """
+    sub = this_db.readOne(query)[0]
+    if sub == None:
+        sub = 0
+
+    account['balance'] = add - sub
+
+    # TODO transaction history
+
+    query = f"""
+    SELECT * FROM transactions WHERE user_id_to={account['id']} OR user_id_from='{account['id']}'
+    """
+    transactionsQ = this_db.read(query) # 0=id, 1=amount, 2=user_id_to, 3=user_id_from, 4=usertofrom
+
+    for transaction in transactionsQ:
+        transactionList = list(transaction)
+
+        if transaction[2] == account['id']: # to this account
+            query = f"""
+            SELECT user_id_from FROM transactions WHERE id={transaction[0]}
+            """
+        else: # from this account
+            query = f"""
+            SELECT user_id_to FROM transactions WHERE id={transaction[0]}
+            """
+
+        tofrom = this_db.readOne(query)[0]
+        query = f"""
+        SELECT name FROM users WHERE id={tofrom}
+        """
+
+        try:
+            usertofrom = this_db.readOne(query)[0]
+        except OperationalError:
+            usertofrom = None
+        transactionList.append(usertofrom)
+        transactions.append(transactionList)
+
+
+    return render_template("viewaccount.html", account=account, transactions=transactions)
+    
+
+@app.route("/adminpanel/", methods=["GET", "POST"])
+def adminpanel():
+    this_db = db()
+    this_db.connect("data.sql")
+
+    query = f"""
+    SELECT administrator FROM users WHERE name='{sqlsafe(session['username'])}'
+    """
+
+    isAdmin = this_db.readOne(query)[0]
+    print(isAdmin)
+    if not isAdmin:
+        return redirect(url_for("index"))
+
     if request.method == "GET":
         return render_template("adminpanel.html")
     
     if request.form["name"] == "" or request.form["amount"] == "":
         flash("You need to fill in the form completely!")
-        return redirect(url_for("transfer"))
-
-    this_db = db()
-    this_db.connect("data.sql")
+        return redirect(url_for("transfer"))    
 
     query = f"""
-    SELECT id FROM users WHERE name='{request.form["name"]}'
+    SELECT id FROM users WHERE name='{sqlsafe(request.form["name"])}'
     """
 
     idq = this_db.readOne(query)
@@ -224,7 +337,7 @@ def adminpanel(page):
         return redirect(url_for("adminpanel"))
     
     query = f"""
-    INSERT INTO transactions (transferamount, user_id_to) VALUES ({request.form["amount"]}, {toid});
+    INSERT INTO transactions (transferamount, user_id_to) VALUES ({sqlsafeint(request.form["amount"])}, {toid});
     """
 
     this_db.execute(query)
@@ -240,7 +353,7 @@ def login():
     if request.method == "GET":
         try:
             test = session['username'] # try to cause a KeyError lmao
-            test = None
+            test = None # TODO maybe this is a bad way to do this...
             return redirect(url_for("index"))
         except KeyError:
             return render_template("login.html")
@@ -280,6 +393,47 @@ def login():
 
         session['username'] = request.form['username']
         return redirect(url_for("index"))
+
+
+@app.route("/addaccount", methods=['GET', 'POST'])
+def addaccount():
+
+    this_db = db()
+    this_db.connect("data.sql")
+
+    query = f"""
+    SELECT administrator FROM users WHERE name='{sqlsafe(session['username'])}'
+    """
+
+    isAdmin = this_db.readOne(query)[0]
+    print(isAdmin)
+    if not isAdmin:
+        return redirect(url_for("index"))
+    
+    if request.method == 'GET':
+        return render_template("create.html")
+    
+
+    username = sqlsafe(request.form['username'])
+    password = hashlib.sha256(bytes(request.form["password"], "utf-8")).hexdigest()
+    password2 = hashlib.sha256(bytes(request.form["confirm"], "utf-8")).hexdigest()
+    
+    if password != password2:
+        flash("Passwords do not match!")
+        return redirect(url_for("addaccount"))
+    
+    if request.form['admin'] == "on":
+        admin = 1
+    else:
+        admin = 0
+    query = f"""
+    INSERT INTO users(name, hash, administrator) VALUES ('{username}', '{password}', {admin})
+    """
+
+    this_db.execute(query)
+
+
+    return redirect(url_for("addaccount"))
 
 
 @app.route("/account", methods=["GET", "POST"])
@@ -323,7 +477,7 @@ def account():
         return render_template("account.html")
 
     query = f"""
-    UPDATE users SET hash='{new}' WHERE name = '{session['username']}';
+    UPDATE users SET hash='{new}' WHERE name='{session['username']}';
     """
 
     this_db.execute(query)

@@ -5,5 +5,41 @@
 {% endblock %}
 
 {% block body %}
-
+<h1>{{ account['username'] }}</h1>
+<a href="/viewaccounts">View All Accounts</a>
+<h3>Account Stats</h3>
+<table>
+    <tr>
+        <th>User ID</th>
+        <th>Balance</th>
+    </tr>
+    <tr>
+        <td>{{ account['id'] }}</td>
+        <td>{{ account['balance'] }}</td>
+    </tr>
+</table>
+<h3>Transaction History</h3>
+<table>
+    <tr>
+        <th>Transaction ID</th>
+        <th>Amount</th>
+        <th>TO/FROM</th>
+        <th>To/From User</th>
+        <!-- <th>Timestamp</th> TODO??? -->
+    </tr>
+    <!-- 0=id, 1=amount, 2=user_id_to, 3=user_id_from, 4=usertofrom -->
+    {% for transaction in transactions %}
+    <tr>
+        <td>{{ transaction[0] }}</td>
+        <td>{{ transaction[1] }}</td>
+        {% if account['id'] == transaction[3] %}
+        <td>TO</td>
+        <td>{{ transaction[4] }}</td>
+        {% else %}
+        <td>FROM</td>
+        <td>{{ transaction[4] }}</td>
+        {% endif %}
+    </tr>
+    {% endfor %}
+</table>
 {% endblock %}

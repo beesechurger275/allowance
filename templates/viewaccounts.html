@@ -18,11 +18,12 @@
     {% for user in bals %}
         <tr>
             <td>{{ user }}</td>
-            <td>{{ usernames[user-1][0] }}</td>
+            <td><a href="/accounts/{{ usernames[user-1][0] }}">{{ usernames[user-1][0] }}</a></td>
             <td>{{ bals[user] }}</td>
         </tr>
     {% endfor %}
 </table>
 <br>
+<a href="/addaccount">Add Account</a>
 <a href="/">Home</a>
 {% endblock %}

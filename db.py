@@ -8,22 +8,20 @@ class db():
     def connect(self, path):
         try:
             self.connection = sqlite3.connect(path)
-            #print("Connection successful!")
         except Error as e:
             print(f"Database Connection Error: {e}")
             raise e
 
-    def execute(self, query):
+    def execute(self, query): # TODO prevent SQL injection
         cursor = self.connection.cursor()
         try:
             cursor.execute(query)
             self.connection.commit()
-            #print("Query successful!")
         except Error as e:
             print(f"Query: {query}")
             raise e
 
-    def read(self, query):
+    def read(self, query): # TODO prevent SQL injection
         cursor = self.connection.cursor()
         result = None
         try:
@@ -34,7 +32,7 @@ class db():
             print(f"Query: {query}")
             raise e
 
-    def readOne(self, query):
+    def readOne(self, query): # TODO prevent SQL injection
         cursor = self.connection.cursor()
         result = None
         try:
