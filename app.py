@@ -1,6 +1,6 @@
 from db import db
 from sqlsafe import sqlsafe, sqlsafeint, sqlsafefloat
-from flask import Flask, render_template, session, request, make_response, redirect, url_for, abort, flash
+from flask import Flask, render_template, session, request, redirect, url_for, abort, flash
 from markupsafe import escape
 import init_db
 import hashlib
