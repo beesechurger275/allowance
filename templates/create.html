@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+
+{%- block head -%}
+<title>Login - Allowance</title>
+{%- endblock -%}
+
+{%- block body -%} 
+<form method="post" style="text-align: center;">
+    <h1 class="large">Create Account</h1>
+    <h2>Username: </h2>
+    <input type="text" name="username">
+    <br>
+    <h2>Password: </h2>
+    <input type="password" name="password">
+    <br><br>
+    <button type="submit">Login</button>
+</form>
+
+{%- with messages = get_flashed_messages() -%}
+    {%- if messages -%}
+        <div class="flashes">
+            {%- for message in messages -%}
+            <p>{{ message }}</p>
+            {%- endfor -%}
+        </div>
+    {%- endif -%}
+{%- endwith -%}
+
+{%- endblock -%}

@@ -199,8 +199,8 @@ def transfer():
         return redirect(url_for("transfer"))
 
 
-@app.route("/adminpanel", methods=["GET", "POST"])
-def adminpanel():
+@app.route("/adminpanel/<page>", methods=["GET", "POST"])
+def adminpanel(page):
     if request.method == "GET":
         return render_template("adminpanel.html")
     

@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% block head %}
+<title>View Balances - Allowance</title>
+{% endblock %}
+
+{% block body %}
+<h1>Accounts Panel</h1>
+<h2>logged in as {{ session["username"] }}</h2>
+<a href="/adminpanel">Admin Panel</a>
+<br><br>
+<table>
+    <tr>
+        <th>User ID</th>
+        <th>Username</th>
+        <th>Balance</th>
+    </tr>
+    {% for user in bals %}
+        <tr>
+            <td>{{ user }}</td>
+            <td>{{ usernames[user-1][0] }}</td>
+            <td>{{ bals[user] }}</td>
+        </tr>
+    {% endfor %}
+</table>
+<br>
+<a href="/">Home</a>
+{% endblock %}
