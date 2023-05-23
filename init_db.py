@@ -11,15 +11,16 @@ def init_db(database):
 
     database.execute(create_users)
 
-    # timestamp TIMESTAMP NOT NULL, could be added but not that terribly important
     create_transactions = """
     CREATE TABLE IF NOT EXISTS transactions (
         id INTEGER PRIMARY KEY AUTOINCREMENT, 
         transferamount FLOAT NOT NULL,
         user_id_to INTEGER NOT NULL, 
         user_id_from INTEGER,
+        timestamp DATETIME NOT NULL DEFAULT(current_timestamp),
         FOREIGN KEY (user_id_to) REFERENCES users (id),
         FOREIGN KEY (user_id_from) REFERENCES users (id)
+        
     );
     """
 
@@ -28,12 +29,12 @@ def init_db(database):
     # TODO ADD BIRTHDATE TO TEST DATA
     test = """ 
     INSERT INTO 
-        users (name, administrator, hash)
+        users (name, administrator, hash, birthdate)
     VALUES
-        ('noah', false, 'd4f6d068b4e8c4e924ce9b28585a6009672e56d61215e7d9251b5d36283edd5d'),
-        ('cole', false, 'd4f6d068b4e8c4e924ce9b28585a6009672e56d61215e7d9251b5d36283edd5d'),
-        ('dylan', false, 'd4f6d068b4e8c4e924ce9b28585a6009672e56d61215e7d9251b5d36283edd5d'),
-        ('nick', true, 'd4f6d068b4e8c4e924ce9b28585a6009672e56d61215e7d9251b5d36283edd5d');
+        ('noah', false, 'd4f6d068b4e8c4e924ce9b28585a6009672e56d61215e7d9251b5d36283edd5d', 2007-09-26),
+        ('cole', false, 'd4f6d068b4e8c4e924ce9b28585a6009672e56d61215e7d9251b5d36283edd5d', 2011-09-14),
+        ('dylan', false, 'd4f6d068b4e8c4e924ce9b28585a6009672e56d61215e7d9251b5d36283edd5d', 2011-09-14),
+        ('nick', true, 'd4f6d068b4e8c4e924ce9b28585a6009672e56d61215e7d9251b5d36283edd5d', NULL);
     """
 
     test2 = """ 

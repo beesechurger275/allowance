@@ -25,7 +25,7 @@
         <th>Amount</th>
         <th>TO/FROM</th>
         <th>To/From User</th>
-        <!-- <th>Timestamp</th> TODO??? -->
+        <th>Timestamp</th>
     </tr>
     <!-- 0=id, 1=amount, 2=user_id_to, 3=user_id_from, 4=usertofrom -->
     {% for transaction in transactions %}
@@ -34,11 +34,12 @@
         <td>{{ transaction[1] }}</td>
         {% if account['id'] == transaction[3] %}
         <td>TO</td>
-        <td>{{ transaction[4] }}</td>
+        <td>{{ transaction[5] }}</td>
         {% else %}
         <td>FROM</td>
-        <td>{{ transaction[4] }}</td>
+        <td>{{ transaction[5] }}</td>
         {% endif %}
+        <td>{{ transaction[4] }}</td>
     </tr>
     {% endfor %}
 </table><br>

@@ -283,6 +283,7 @@ def individualaccount(name):
     transactionsQ = this_db.read(query) # 0=id, 1=amount, 2=user_id_to, 3=user_id_from, 4=usertofrom
 
     for transaction in transactionsQ:
+        print(transaction)
         transactionList = list(transaction)
 
         if transaction[2] == account['id']: # to this account
