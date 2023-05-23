@@ -1,7 +1,6 @@
 from db import db
 from sqlsafe import sqlsafe, sqlsafeint, sqlsafefloat
 from flask import Flask, render_template, session, request, redirect, url_for, abort, flash
-from markupsafe import escape
 import init_db
 import hashlib
 from sqlite3 import OperationalError
@@ -167,8 +166,6 @@ def transfer():
         elif add == None and sub != None:
             balance = round(sub, 2)
 
-        # get balance
-
         if balance - float(request.form["amount"]) < 0:
             flash("You can't transfer more than you have!")
             return redirect(url_for("transfer"))
@@ -242,11 +239,23 @@ def viewall():
 
 @app.route("/accounts/<name>") # TODO display: ID, Balance, Transaction History
 def individualaccount(name):
+
+    this_db = db()
+    this_db.connect("data.sql")
+
+    query = f"""
+    SELECT administrator FROM users WHERE name='{sqlsafe(session['username'])}'
+    """
+
+    isAdmin = this_db.readOne(query)[0]
+    print(isAdmin)
+    if not isAdmin:
+        return redirect(url_for("index"))
+
     account = {}
     transactions = []
     account['username'] = sqlsafe(name)
-    this_db = db()
-    this_db.connect("data.sql")
+    
     query = f"""
     SELECT id FROM users WHERE name="{account['username']}"
     """
@@ -267,8 +276,6 @@ def individualaccount(name):
         sub = 0
 
     account['balance'] = add - sub
-
-    # TODO transaction history
 
     query = f"""
     SELECT * FROM transactions WHERE user_id_to={account['id']} OR user_id_from='{account['id']}'
@@ -295,7 +302,7 @@ def individualaccount(name):
         try:
             usertofrom = this_db.readOne(query)[0]
         except OperationalError:
-            usertofrom = None
+            usertofrom = "admintransfer" # No user_id_from
         transactionList.append(usertofrom)
         transactions.append(transactionList)
 
