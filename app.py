@@ -4,6 +4,7 @@ from flask import Flask, render_template, session, request, redirect, url_for, a
 import init_db
 import hashlib
 from sqlite3 import OperationalError
+import etc
 
 database = db()
 database.connect("data.sql")
@@ -278,15 +279,24 @@ def individualaccount(name):
     account['balance'] = add - sub
 
     query = f"""
+    SELECT birthdate FROM users WHERE id='{account['id']}';
+    """
+
+    account['birthdate'] = this_db.readOne(query)[0]
+
+    if account['birthdate'] == None:
+        print("birthdate is none")
+
+    query = f"""
     SELECT * FROM transactions WHERE user_id_to={account['id']} OR user_id_from='{account['id']}'
     """
-    transactionsQ = this_db.read(query) # 0=id, 1=amount, 2=user_id_to, 3=user_id_from, 4=usertofrom
+    transactionsQ = this_db.read(query) # 0=id, 1=amount, 2=user_id_to, 3=user_id_from, 4=timestamp, 5=usertofrom
 
     for transaction in transactionsQ:
-        print(transaction)
+        #print(transaction)
         transactionList = list(transaction)
 
-        if transaction[2] == account['id']: # to this account
+        if transaction[2] == account['id']: # to this account 
             query = f"""
             SELECT user_id_from FROM transactions WHERE id={transaction[0]}
             """
@@ -423,24 +433,44 @@ def addaccount():
     
 
     username = sqlsafe(request.form['username'])
+    if username == None:
+        flash("Username not entered!")
+        return redirect(url_for("addaccount"))
+    
     password = hashlib.sha256(bytes(request.form["password"], "utf-8")).hexdigest()
     password2 = hashlib.sha256(bytes(request.form["confirm"], "utf-8")).hexdigest()
+
+    if password == None:
+        flash("Enter password!")
+        return redirect(url_for("addaccount"))
     
     if password != password2:
         flash("Passwords do not match!")
         return redirect(url_for("addaccount"))
     
-    if request.form['admin'] == "on":
-        admin = 1
+    if 'admin' in request.form:
+        if request.form['admin'] == "on":
+            admin = 1
+        else:
+            admin = 0
     else:
         admin = 0
+
+    birthdate = sqlsafe(request.form['birthdate'])
+
+    if birthdate == '':
+        birthdate = 'NULL'
+    else:
+        birthdate = etc.getDate(birthdate)
+        print(f'Type: {type(birthdate)}')
+
     query = f"""
-    INSERT INTO users(name, hash, administrator) VALUES ('{username}', '{password}', {admin})
+    INSERT INTO users(name, hash, administrator, birthdate) VALUES ('{username}', '{password}', {admin}, '{birthdate}');
     """
 
     this_db.execute(query)
 
-
+    flash("User creation successful!")
     return redirect(url_for("addaccount"))
 
 

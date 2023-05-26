@@ -1,2 +1,4 @@
 secretkey.txt
 data.sql
+__pycache__
+venv

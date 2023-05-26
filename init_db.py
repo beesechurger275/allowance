@@ -31,9 +31,9 @@ def init_db(database):
     INSERT INTO 
         users (name, administrator, hash, birthdate)
     VALUES
-        ('noah', false, 'd4f6d068b4e8c4e924ce9b28585a6009672e56d61215e7d9251b5d36283edd5d', 2007-09-26),
-        ('cole', false, 'd4f6d068b4e8c4e924ce9b28585a6009672e56d61215e7d9251b5d36283edd5d', 2011-09-14),
-        ('dylan', false, 'd4f6d068b4e8c4e924ce9b28585a6009672e56d61215e7d9251b5d36283edd5d', 2011-09-14),
+        ('noah', false, 'd4f6d068b4e8c4e924ce9b28585a6009672e56d61215e7d9251b5d36283edd5d', '2007-09-26'),
+        ('cole', false, 'd4f6d068b4e8c4e924ce9b28585a6009672e56d61215e7d9251b5d36283edd5d', '2011-09-14'),
+        ('dylan', false, 'd4f6d068b4e8c4e924ce9b28585a6009672e56d61215e7d9251b5d36283edd5d', '2011-09-14'),
         ('nick', true, 'd4f6d068b4e8c4e924ce9b28585a6009672e56d61215e7d9251b5d36283edd5d', NULL);
     """
 
