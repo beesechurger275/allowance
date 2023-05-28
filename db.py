@@ -12,16 +12,17 @@ class db():
             print(f"Database Connection Error: {e}")
             raise e
 
-    def execute(self, query): # TODO prevent SQL injection
+    def execute(self, query):
         cursor = self.connection.cursor()
         try:
             cursor.execute(query)
             self.connection.commit()
         except Error as e:
+            print("Database execute error")
             print(f"Query: {query}")
             raise e
 
-    def read(self, query): # TODO prevent SQL injection
+    def read(self, query):
         cursor = self.connection.cursor()
         result = None
         try:
@@ -29,10 +30,11 @@ class db():
             result = cursor.fetchall()
             return result
         except Error as e:
+            print("Database read error")
             print(f"Query: {query}")
             raise e
 
-    def readOne(self, query): # TODO prevent SQL injection
+    def readOne(self, query):
         cursor = self.connection.cursor()
         result = None
         try:
@@ -40,6 +42,7 @@ class db():
             result = cursor.fetchone()
             return result
         except Error as e:
+            print("Database readOne Error")
             print(f"Query: {query}")
             raise e
             

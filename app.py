@@ -6,6 +6,7 @@ import hashlib
 from sqlite3 import OperationalError
 import etc
 
+
 database = db()
 database.connect("data.sql")
 
@@ -17,13 +18,16 @@ with open("secretkey.txt", 'r') as key:
     app.secret_key = key.read()
     key.close()
 
+etc.updateWeekly()
+
 @app.route("/")
 def index():
+    etc.updateWeekly()
     try:
         username = session['username']
     except KeyError:
         return redirect(url_for('login'))
-    
+    23
     this_db = db()
     this_db.connect("data.sql")
     account = {}
@@ -48,7 +52,6 @@ def index():
     """
 
     transactionsTo = this_db.read(query)
-    print(transactionsTo[0][0])
 
     query = f"""
         SELECT SUM(transferamount) FROM transactions WHERE user_id_from={account["id"]};
@@ -57,16 +60,13 @@ def index():
     transactionsFrom = this_db.read(query)
 
     add = transactionsTo[0][0]
+    if add == None:
+        add = 0
     sub = transactionsFrom[0][0]
+    if sub == None:
+        sub = 0
 
-    if add != None and sub != None:
-        account["balance"] = round(add - sub, 2)
-    elif add == None and sub == None:
-        account["balance"] = 0
-    elif sub == None:
-        account["balance"] = round(add, 2)
-    elif add == None:
-        account["balance"] = round(sub, 2)
+    account["balance"] = round(add - sub, 2)
 
     this_db.close()
 
@@ -75,6 +75,7 @@ def index():
 
 @app.route("/transfer", methods=["GET", "POST"])
 def transfer():
+    etc.updateWeekly()
     if request.method == "GET":
         try:
             username = session['username']
@@ -99,6 +100,8 @@ def transfer():
 
         transactionsTo = this_db.read(query)
         add = transactionsTo[0][0]
+        if add == None:
+            add = 0
         
         query = f"""
         SELECT SUM(transferamount) FROM transactions WHERE user_id_from={account["id"]};
@@ -106,15 +109,10 @@ def transfer():
 
         transactionsFrom = this_db.read(query)
         sub = transactionsFrom[0][0]
+        if sub == None:
+            sub = 0
 
-        if add != None and sub != None:
-            account["balance"] = round(add - sub, 2)
-        elif add == None and sub == None:
-            account["balance"] = 0
-        elif add != None and sub == None:
-            account["balance"] = round(add, 2)
-        elif add == None and sub != None:
-            account["balance"] = round(sub, 2)
+        account["balance"] = round(add - sub, 2)
 
 
         return render_template("transfer.html", account=account)
@@ -148,22 +146,18 @@ def transfer():
     """
     h = this_db.read(q)
     add = h[0][0]
+    if add == None:
+        add = 0
 
     q = f"""
     SELECT SUM(transferamount) FROM transactions WHERE user_id_from='{fromid}';
     """
     h = this_db.read(q)
     sub = h[0][0]
+    if sub == None:
+        sub = 0
 
-    if add != None and sub != None:
-        balance = round(add - sub, 2)
-    elif add == None and sub == None:
-        flash("You can't transfer more than you have!")
-        return redirect(url_for("transfer"))
-    elif add != None and sub == None:
-        balance = round(add, 2)
-    elif add == None and sub != None:
-        balance = round(sub, 2)
+    balance = round(add - sub, 2)
 
     if balance - float(request.form["amount"]) < 0:
         flash("You can't transfer more than you have!")
@@ -197,6 +191,7 @@ def transfer():
 
 @app.route("/viewaccounts")
 def viewall():
+    etc.updateWeekly()
     if 'username' not in session:
         return redirect(url_for('login'))
         
@@ -206,7 +201,6 @@ def viewall():
     SELECT administrator FROM users WHERE name='{sqlsafe(session['username'])}'
     """
     isAdmin = this_db.readOne(query)[0]
-    print(isAdmin)
     if not isAdmin:
         return redirect(url_for("index"))
     query = """
@@ -219,7 +213,6 @@ def viewall():
     SELECT name FROM users ORDER BY id;
     """
     usernames = this_db.read(query)
-    print(usernames)
     for id in userids:
         a = id[0]
         query = f"""
@@ -241,6 +234,7 @@ def viewall():
 
 @app.route("/accounts/<name>") # TODO display: ID, Balance, Transaction History
 def individualaccount(name):
+    etc.updateWeekly()
     if 'username' not in session:
         return redirect(url_for('login'))
     this_db = db()
@@ -251,7 +245,6 @@ def individualaccount(name):
     """
 
     isAdmin = this_db.readOne(query)[0]
-    print(isAdmin)
     if not isAdmin:
         return redirect(url_for("index"))
 
@@ -286,16 +279,12 @@ def individualaccount(name):
 
     account['birthdate'] = this_db.readOne(query)[0]
 
-    if account['birthdate'] == None:
-        print("birthdate is none")
-
     query = f"""
     SELECT * FROM transactions WHERE user_id_to={account['id']} OR user_id_from='{account['id']}'
     """
     transactionsQ = this_db.read(query) # 0=id, 1=amount, 2=user_id_to, 3=user_id_from, 4=timestamp, 5=usertofrom
 
     for transaction in transactionsQ:
-        #print(transaction)
         transactionList = list(transaction)
 
         if transaction[2] == account['id']: # to this account 
@@ -325,6 +314,7 @@ def individualaccount(name):
 
 @app.route("/adminpanel/", methods=["GET", "POST"])
 def adminpanel():
+    etc.updateWeekly()
     if 'username' not in session:
         return redirect(url_for('login'))
     this_db = db()
@@ -335,7 +325,6 @@ def adminpanel():
     """
 
     isAdmin = this_db.readOne(query)[0]
-    print(isAdmin)
     if not isAdmin:
         return redirect(url_for("index"))
 
@@ -363,8 +352,6 @@ def adminpanel():
     """
 
     this_db.execute(query)
-
-    print(toid)
 
     flash("Transfer complete!")
     return redirect(url_for("adminpanel"))
@@ -415,7 +402,7 @@ def login():
 
 @app.route("/addaccount", methods=['GET', 'POST'])
 def addaccount():
-    
+    etc.updateWeekly()
 
     this_db = db()
     this_db.connect("data.sql")
@@ -425,7 +412,6 @@ def addaccount():
     """
 
     isAdmin = this_db.readOne(query)[0]
-    print(isAdmin)
     if not isAdmin:
         return redirect(url_for("index"))
     
@@ -463,7 +449,6 @@ def addaccount():
         birthdate = 'NULL'
     else:
         birthdate = etc.getDate(birthdate)
-        print(f'Type: {type(birthdate)}')
 
     query = f"""
     INSERT INTO users(name, hash, administrator, birthdate) VALUES ('{username}', '{password}', {admin}, '{birthdate}');
@@ -477,12 +462,12 @@ def addaccount():
 
 @app.route("/account", methods=["GET", "POST"])
 def account():
+    etc.updateWeekly()
     if request.method == "GET":
         if 'username' in session:
             return render_template("account.html")
         return redirect(url_for("login"))
     
-    print(request.form["current"])
 
     if request.form["current"] == '' or request.form["new"] == '' or request.form["confirm"] == '':
         flash("Fill out form completely!")
@@ -503,12 +488,10 @@ def account():
     confirm = hashlib.sha256(bytes(request.form['confirm'], "utf-8")).hexdigest()
 
     if currentForm != current:
-        print("password entered for current incorrect")
         flash("Current password incorrect")
         return render_template("account.html")
 
     if new != confirm:
-        print("Password confirmation incorrect")
         flash("Passwords do not match")
         return render_template("account.html")
 

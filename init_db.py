@@ -26,6 +26,15 @@ def init_db(database):
 
     database.execute(create_transactions)
 
+    create_weeklyupdate = """
+    CREATE TABLE IF NOT EXISTS updates (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        date DATE NOT NULL
+    );
+    """
+
+    database.execute(create_weeklyupdate)
+
     # TODO ADD BIRTHDATE TO TEST DATA
     test = """ 
     INSERT INTO 
@@ -47,5 +56,13 @@ def init_db(database):
         (20.04, 1, 4);
     """
 
+    test3 = """
+    INSERT INTO
+        updates(date)
+    VALUES
+        ('2023-5-21');
+    """
+
     #database.execute(test)
     #database.execute(test2)
+    #database.execute(test3)
