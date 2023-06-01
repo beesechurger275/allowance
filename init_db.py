@@ -60,7 +60,7 @@ def init_db(database):
     INSERT INTO
         updates(date)
     VALUES
-        ('2023-5-21');
+        ('2023-5-12');
     """
 
     #database.execute(test)

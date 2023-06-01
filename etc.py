@@ -5,7 +5,7 @@ from db import db
 def getDate(date):
     return datetime.strptime(date, '%Y-%m-%d').date()
 
-def updateWeekly():
+def updateWeekly(): # TODO set timestamp to midnight of correct friday
     database = db()
     database.connect("data.sql")
 
@@ -18,55 +18,70 @@ def updateWeekly():
 
     mostrecent = getDate(database.readOne(query)[0])
 
+    diff = (now - mostrecent).days
 
-    if mostrecent < now and weekday == 4:
+    weeks = int(diff / 7)
 
-        diff = (now - mostrecent).days
-        weeks = int(diff / 7)
+    if mostrecent.weekday() != 4: # check if last update was a friday
+        return "oh shit" # TODO oh shit
+    if mostrecent == now or diff < 7:
+        return 0
 
-        print(f"Diff: {diff}")
+    print(f"full weeks since last update: {weeks}")
+
+    query = f"""
+    SELECT id FROM users ORDER BY id;
+    """
+    users = database.read(query)
+
+    
+
+    for user in users:
+        userid = user[0]
 
         query = f"""
-        SELECT id FROM users ORDER BY id;
+        SELECT birthdate FROM users WHERE id={userid};
         """
+        read = database.readOne(query)[0]
+        if read == None:
+            continue
 
-        users = database.read(query)
+        dob = getDate(read)
+        #print(f"dob for user {userid}: {dob}")
+        weekly = int(((now - dob).days) / 365.2425) * 0.75 # might be bad
+        #print(f"weekly of user {userid}: {weekly}")
 
-        for user in users:
-            userid = user[0]
-            
+        date = mostrecent
+        while True: # maybe todo? switch while and for loop positions (clean up transaction ids)
+            date += timedelta(days=7)
+            print(date)
+            if date > now:
+                break
             query = f"""
-            SELECT birthdate FROM users WHERE id={userid}
-            """
-            read = database.readOne(query)[0]
-            if read == None:
-                continue
-
-            dob = getDate(read)
-
-            print(f"dob for user {userid}: {dob}")
-
-            weekly = int(((now - dob).days) / 365.2425) * 0.75 # might be bad
-
-            print(f"weekly of user {userid}: {weekly}")
-
-            # TODO set timestamp to midnight of correct friday
-            query = f"""
-            INSERT INTO 
-                transactions(transferamount, user_id_to)
+            INSERT INTO
+                transactions(transferamount, user_id_to, timestamp)
             VALUES
-                ({weekly * weeks}, {userid});
+                ({weekly}, {userid}, '{datetime.combine(date, datetime.min.time())}');
             """
-
             database.execute(query)
 
-        query = f"""
-        INSERT INTO
-            updates(date)
-        VALUES
-            ('{now}');
-        """
+    stage = mostrecent
+    date = mostrecent
+    while True:
+        stage += timedelta(days=7)
+        if stage > now:
+            break
+        date = stage
 
-        database.execute(query)
+    print(f"updating last update to {date}")
+
+    query = f"""
+    INSERT INTO
+        updates(date)
+    VALUES
+        ('{date}');
+    """
+
+    database.execute(query)
     
     

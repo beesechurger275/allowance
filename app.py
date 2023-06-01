@@ -232,7 +232,7 @@ def viewall():
     return render_template("viewaccounts.html", bals=bals, usernames=usernames)
 
 
-@app.route("/accounts/<name>") # TODO display: ID, Balance, Transaction History
+@app.route("/accounts/<name>")
 def individualaccount(name):
     etc.updateWeekly()
     if 'username' not in session:
