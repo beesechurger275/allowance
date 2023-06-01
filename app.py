@@ -228,8 +228,12 @@ def viewall():
         if minus == None:
             minus = 0
         bals[a] = plus - minus
-
-    return render_template("viewaccounts.html", bals=bals, usernames=usernames)
+        
+    query = f"""
+    SELECT date FROM updates ORDER BY id DESC LIMIT 1;
+    """
+    lastweekly = etc.getDate(this_db.readOne(query)[0])
+    return render_template("viewaccounts.html", bals=bals, usernames=usernames, lastweekly=lastweekly)
 
 
 @app.route("/accounts/<name>")
