@@ -34,29 +34,26 @@ def updateWeekly(): # TODO set timestamp to midnight of correct friday
     """
     users = database.read(query)
 
-    
+    date = mostrecent
+    while True:    
+        date += timedelta(days=7)
+        print(date)
+        if date > now:
+            break
 
-    for user in users:
-        userid = user[0]
+        for user in users:
+            userid = user[0]
 
-        query = f"""
-        SELECT birthdate FROM users WHERE id={userid};
-        """
-        read = database.readOne(query)[0]
-        if read == None:
-            continue
+            query = f"""
+            SELECT birthdate FROM users WHERE id={userid};
+            """
+            read = database.readOne(query)[0]
+            if read == None:
+                continue
 
-        dob = getDate(read)
-        #print(f"dob for user {userid}: {dob}")
-        weekly = int(((now - dob).days) / 365.2425) * 0.75 # might be bad
-        #print(f"weekly of user {userid}: {weekly}")
+            dob = getDate(read)
+            weekly = int(((now - dob).days) / 365.2425) * 0.75 # might be bad
 
-        date = mostrecent
-        while True: # maybe todo? switch while and for loop positions (clean up transaction ids)
-            date += timedelta(days=7)
-            print(date)
-            if date > now:
-                break
             query = f"""
             INSERT INTO
                 transactions(transferamount, user_id_to, timestamp)
@@ -83,5 +80,36 @@ def updateWeekly(): # TODO set timestamp to midnight of correct friday
     """
 
     database.execute(query)
+
+    return 0
+
+    # old stuff:
+
+    for user in users:
+        userid = user[0]
+
+        query = f"""
+        SELECT birthdate FROM users WHERE id={userid};
+        """
+        read = database.readOne(query)[0]
+        if read == None:
+            continue
+
+        dob = getDate(read)
+        weekly = int(((now - dob).days) / 365.2425) * 0.75 # might be bad
+
+        date = mostrecent
+        while True: # todo? switch while and for loop positions (clean up transaction ids)
+            date += timedelta(days=7)
+            print(date)
+            if date > now:
+                break
+            query = f"""
+            INSERT INTO
+                transactions(transferamount, user_id_to, timestamp)
+            VALUES
+                ({weekly}, {userid}, '{datetime.combine(date, datetime.min.time())}');
+            """
+            database.execute(query)
     
     

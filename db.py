@@ -30,8 +30,8 @@ class db():
             result = cursor.fetchall()
             return result
         except Error as e:
-            print("Database read error")
-            print(f"Query: {query}")
+            #print("Database read error")
+            #print(f"Query: {query}")
             raise e
 
     def readOne(self, query):
@@ -42,8 +42,8 @@ class db():
             result = cursor.fetchone()
             return result
         except Error as e:
-            print("Database readOne Error")
-            print(f"Query: {query}")
+            #print("Database readOne Error")
+            #print(f"Query: {query}")
             raise e
             
 

@@ -11,7 +11,7 @@
 <a href="/adminpanel">Admin Panel</a>
 <a href="/viewaccounts">View Accounts</a>
 {% endif %}
-<a href="account">Account</a>
+<a href="/accounts/{{ session['username'] }}">Account</a>
 <a href="/transfer">Transfer</a>
 <a href="/logout">Log out</a>
 {% endblock %}

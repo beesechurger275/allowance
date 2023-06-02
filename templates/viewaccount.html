@@ -6,7 +6,9 @@
 
 {% block body %}
 <h1>{{ account['username'] }}</h1>
+{% if admin %}
 <a href="/viewaccounts">View All Accounts</a>
+{% endif %}
 <h3>Account Stats</h3>
 <table>
     <tr>
@@ -45,5 +47,8 @@
     </tr>
     {% endfor %}
 </table><br>
+{% if account['username'] == session['username'] %}
+<a href="/account">Change Password</a><br>
+{% endif %}
 <a href="/">Home</a>
 {% endblock %}

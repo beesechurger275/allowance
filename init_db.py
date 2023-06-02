@@ -20,7 +20,6 @@ def init_db(database):
         timestamp DATETIME NOT NULL DEFAULT(current_timestamp),
         FOREIGN KEY (user_id_to) REFERENCES users (id),
         FOREIGN KEY (user_id_from) REFERENCES users (id)
-        
     );
     """
 
@@ -35,15 +34,16 @@ def init_db(database):
 
     database.execute(create_weeklyupdate)
 
-    # TODO ADD BIRTHDATE TO TEST DATA
+    # default password hash is 'waffles'. password can be changed by user once logged in
     test = """ 
     INSERT INTO 
         users (name, administrator, hash, birthdate)
     VALUES
+        ('nick', true, 'd4f6d068b4e8c4e924ce9b28585a6009672e56d61215e7d9251b5d36283edd5d', NULL),
+        ('pam', true, 'd4f6d068b4e8c4e924ce9b28585a6009672e56d61215e7d9251b5d36283edd5d', NULL),
         ('noah', false, 'd4f6d068b4e8c4e924ce9b28585a6009672e56d61215e7d9251b5d36283edd5d', '2007-09-26'),
         ('cole', false, 'd4f6d068b4e8c4e924ce9b28585a6009672e56d61215e7d9251b5d36283edd5d', '2011-09-14'),
-        ('dylan', false, 'd4f6d068b4e8c4e924ce9b28585a6009672e56d61215e7d9251b5d36283edd5d', '2011-09-14'),
-        ('nick', true, 'd4f6d068b4e8c4e924ce9b28585a6009672e56d61215e7d9251b5d36283edd5d', NULL);
+        ('dylan', false, 'd4f6d068b4e8c4e924ce9b28585a6009672e56d61215e7d9251b5d36283edd5d', '2011-09-14');
     """
 
     test2 = """ 
@@ -60,7 +60,7 @@ def init_db(database):
     INSERT INTO
         updates(date)
     VALUES
-        ('2023-5-12');
+        ('2023-4-7');
     """
 
     #database.execute(test)

@@ -250,7 +250,8 @@ def individualaccount(name):
 
     isAdmin = this_db.readOne(query)[0]
     if not isAdmin:
-        return redirect(url_for("index"))
+        if name != session['username']:
+            return redirect(url_for("index"))
 
     account = {}
     transactions = []
@@ -313,7 +314,7 @@ def individualaccount(name):
         transactions.append(transactionList)
 
 
-    return render_template("viewaccount.html", account=account, transactions=transactions)
+    return render_template("viewaccount.html", account=account, transactions=transactions, admin=isAdmin)
     
 
 @app.route("/adminpanel/", methods=["GET", "POST"])
