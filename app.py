@@ -27,7 +27,7 @@ def index():
         username = session['username']
     except KeyError:
         return redirect(url_for('login'))
-    23
+    
     this_db = db()
     this_db.connect("data.sql")
     account = {}
