@@ -16,7 +16,26 @@ def updateWeekly(): # TODO set timestamp to midnight of correct friday
     SELECT date FROM updates ORDER BY id DESC LIMIT 1;
     """
 
-    mostrecent = getDate(database.readOne(query)[0])
+    read = database.readOne(query)
+
+    if read == None:
+        date = now
+        while True:
+            if date.weekday() == 4:
+                break
+            else:
+                date -= timedelta(days=1)
+
+        query = f"""
+        INSERT INTO 
+            updates(date)
+        VALUES
+            ('{date}');
+        """
+        database.execute(query)
+        return 0
+
+    mostrecent = getDate(read[0])
 
     diff = (now - mostrecent).days
 
@@ -80,36 +99,5 @@ def updateWeekly(): # TODO set timestamp to midnight of correct friday
     """
 
     database.execute(query)
-
-    return 0
-
-    # old stuff:
-
-    for user in users:
-        userid = user[0]
-
-        query = f"""
-        SELECT birthdate FROM users WHERE id={userid};
-        """
-        read = database.readOne(query)[0]
-        if read == None:
-            continue
-
-        dob = getDate(read)
-        weekly = int(((now - dob).days) / 365.2425) * 0.75 # might be bad
-
-        date = mostrecent
-        while True: # todo? switch while and for loop positions (clean up transaction ids)
-            date += timedelta(days=7)
-            print(date)
-            if date > now:
-                break
-            query = f"""
-            INSERT INTO
-                transactions(transferamount, user_id_to, timestamp)
-            VALUES
-                ({weekly}, {userid}, '{datetime.combine(date, datetime.min.time())}');
-            """
-            database.execute(query)
     
     

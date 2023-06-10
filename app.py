@@ -23,15 +23,13 @@ etc.updateWeekly()
 @app.route("/")
 def index():
     etc.updateWeekly()
-    try:
-        username = session['username']
-    except KeyError:
+    if 'username' not in session:
         return redirect(url_for('login'))
-    
+
     this_db = db()
     this_db.connect("data.sql")
     account = {}
-    account["username"] = username
+    account["username"] = session['username']
 
     query = f"""
     SELECT administrator FROM users WHERE name='{sqlsafe(account["username"])}';
