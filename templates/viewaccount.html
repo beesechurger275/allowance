@@ -18,7 +18,7 @@
     </tr>
     <tr>
         <td>{{ account['id'] }}</td>
-        <td>{{ account['balance'] }}</td>
+        <td>{{ "{:.2f}".format(account["balance"]) }}</td>
         <td>{{ account['birthdate'] }}</td>
     </tr>
 </table>
@@ -35,13 +35,21 @@
     {% for transaction in transactions %}
     <tr>
         <td>{{ transaction[0] }}</td>
-        <td>{{ transaction[1] }}</td>
+        <td>{{ '{:.2f}'.format(transaction[1]) }}</td>
         {% if account['id'] == transaction[3] %}
-        <td>TO</td>
-        <td>{{ transaction[5] }}</td>
+            <td>TO</td>
+            {% if not admin or transaction[5] == "admintransfer" %}
+            <td>{{ transaction[5] }}</td>
+            {% else %}
+            <td><a href="/accounts/{{ transaction[5] }}">{{ transaction[5] }}</a></td>
+            {% endif %}
         {% else %}
         <td>FROM</td>
-        <td>{{ transaction[5] }}</td>
+            {% if not admin or transaction[5] == "admintransfer" %}
+            <td>{{ transaction[5] }}</td>
+            {% else %}
+            <td><a href="/accounts/{{ transaction[5] }}">{{ transaction[5] }}</a></td>
+            {% endif %}
         {% endif %}
         <td>{{ transaction[4] }}</td>
     </tr>
@@ -49,6 +57,8 @@
 </table><br>
 {% if account['username'] == session['username'] %}
 <a href="/account">Change Password</a><br>
+{% else %}
+<a href="/adminpasswordchange/{{ account['username'] }}">Change Password (Admin)</a><br>
 {% endif %}
 <a href="/">Home</a>
 {% endblock %}

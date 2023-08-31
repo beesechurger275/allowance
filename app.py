@@ -6,6 +6,7 @@ import hashlib
 from sqlite3 import OperationalError
 import etc
 
+# TODO admin password changes
 
 database = db()
 database.connect("data.sql")
@@ -19,6 +20,7 @@ with open("secretkey.txt", 'r') as key:
     key.close()
 
 etc.updateWeekly()
+
 
 @app.route("/")
 def index():
@@ -187,6 +189,7 @@ def transfer():
     flash("Transfer complete!")
     return redirect(url_for("transfer"))
 
+
 @app.route("/viewaccounts")
 def viewall():
     etc.updateWeekly()
@@ -233,6 +236,53 @@ def viewall():
     lastweekly = etc.getDate(this_db.readOne(query)[0])
     return render_template("viewaccounts.html", bals=bals, usernames=usernames, lastweekly=lastweekly)
 
+
+
+@app.route("/adminpasswordchange/<name>", methods=["GET", "POST"])
+def adminpasswordchange(name):
+    if 'username' not in session:
+        return redirect(url_for('login'))
+
+    this_db = db()
+    this_db.connect("data.sql")
+    query = f"""
+    SELECT administrator FROM users WHERE name='{sqlsafe(session['username'])}'
+    """
+    isAdmin = this_db.readOne(query)[0]
+    if not isAdmin:
+        return redirect(url_for("index"))
+
+    if request.method == "GET":
+        return render_template("adminpasswordchange.html", user=name)
+    
+    adminHash = hashlib.sha256(bytes(request.form['admin'], "utf-8")).hexdigest()
+    getPass = f"""
+    SELECT hash FROM users WHERE name='{session['username']}'
+    """
+    storedPass = this_db.readOne(getPass)[0]
+
+    if adminHash != storedPass:
+        flash("Password change failed! Admin password incorrect!")
+        return render_template('adminpasswordchange.html', user=name)
+
+    if request.form['new'] == request.form["confirm"]:
+        print('passwords match')
+
+        passHash = hashlib.sha256(bytes(request.form['new'], "utf-8")).hexdigest()
+
+        query = f"""
+        UPDATE users SET hash='{sqlsafe(passHash)}' WHERE name='{sqlsafe(name)}';
+        """
+
+        this_db.execute(query)
+
+        flash("Password change complete!")
+        return render_template('adminpasswordchange.html', user=name)
+    
+    flash("Password change failed! Passwords do not match!")
+    return render_template('adminpasswordchange.html', user=name)
+        
+        
 
 @app.route("/accounts/<name>")
 def individualaccount(name):
@@ -351,7 +401,7 @@ def adminpanel():
         return redirect(url_for("adminpanel"))
     
     query = f"""
-    INSERT INTO transactions (transferamount, user_id_to) VALUES ({sqlsafeint(request.form["amount"])}, {toid});
+    INSERT INTO transactions (transferamount, user_id_to) VALUES ({sqlsafefloat(request.form["amount"])}, {toid});
     """
 
     this_db.execute(query)
@@ -507,7 +557,7 @@ def account():
     flash("Password change complete!")
     return render_template("account.html")
 
-    
+
 @app.route("/logout")
 def logout():
     session.pop('username', None)

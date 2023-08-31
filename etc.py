@@ -5,7 +5,7 @@ from db import db
 def getDate(date):
     return datetime.strptime(date, '%Y-%m-%d').date()
 
-def updateWeekly(): # TODO set timestamp to midnight of correct friday
+def updateWeekly():
     database = db()
     database.connect("data.sql")
 

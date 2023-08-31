@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
 {% block head %}
-<title>View Balances - Allowance</title>
+<title>Accounts Panel - Allowance</title>
 {% endblock %}
 
 {% block body %}
@@ -18,8 +18,12 @@
     {% for user in bals %}
         <tr>
             <td>{{ user }}</td>
+            {% if usernames[user-1][0] != session['username'] %}
             <td><a href="/accounts/{{ usernames[user-1][0] }}">{{ usernames[user-1][0] }}</a></td>
-            <td>{{ bals[user] }}</td>
+            {% else %}
+            <td><a href="/accounts/{{ usernames[user-1][0] }}">{{ usernames[user-1][0] }} (you)</a></td>
+            {% endif %}
+            <td>{{ "{:.2f}".format(bals[user]) }}</td>
         </tr>
     {% endfor %}
 </table>
