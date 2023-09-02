@@ -261,6 +261,10 @@ def adminpasswordchange(name):
     """
     storedPass = this_db.readOne(getPass)[0]
 
+    if request.form["new"] == '' or request.form["confirm"] == '' or request.form["admin"] == '':
+        flash("Fill out form completely!")
+        return render_template("account.html")
+
     if adminHash != storedPass:
         flash("Password change failed! Admin password incorrect!")
         return render_template('adminpasswordchange.html', user=name)
@@ -572,3 +576,6 @@ def not_found(a):
 @app.errorhandler(500)
 def fivehundred(a):
     return "Error 500"
+
+if __name__ == "__main__":
+    app.run(host='0.0.0.0')

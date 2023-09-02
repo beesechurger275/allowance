@@ -9,7 +9,7 @@
 
     - Activate virtual environment
 
-        Windows:
+        Windows PowerShell:
 
         `venv\Scripts\Activate.ps1`
 
