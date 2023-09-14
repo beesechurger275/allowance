@@ -81,6 +81,7 @@ def updateWeekly():
             """
             database.execute(query)
 
+    # TODO find a way to remove this block
     stage = mostrecent
     date = mostrecent
     while True:
@@ -88,6 +89,7 @@ def updateWeekly():
         if stage > now:
             break
         date = stage
+    #
 
     print(f"updating last update to {date}")
 

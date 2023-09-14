@@ -1,12 +1,10 @@
 from db import db
-from sqlsafe import sqlsafe, sqlsafeint, sqlsafefloat
+from sqlsafe import sqlsafe, sqlsafefloat
 from flask import Flask, render_template, session, request, redirect, url_for, abort, flash
 import init_db
 import hashlib
 from sqlite3 import OperationalError
 import etc
-
-# TODO admin password changes
 
 database = db()
 database.connect("data.sql")
@@ -203,6 +201,7 @@ def viewall():
     """
     isAdmin = this_db.readOne(query)[0]
     if not isAdmin:
+        return abort(403)
         return redirect(url_for("index"))
     query = """
     SELECT id FROM users ORDER BY id;
@@ -240,7 +239,9 @@ def viewall():
 
 @app.route("/adminpasswordchange/<name>", methods=["GET", "POST"])
 def adminpasswordchange(name):
+    etc.updateWeekly()
     if 'username' not in session:
+        return abort(403)
         return redirect(url_for('login'))
 
     this_db = db()
@@ -250,7 +251,7 @@ def adminpasswordchange(name):
     """
     isAdmin = this_db.readOne(query)[0]
     if not isAdmin:
-        return redirect(url_for("index"))
+        return abort(403)
 
     if request.method == "GET":
         return render_template("adminpasswordchange.html", user=name)
@@ -292,6 +293,7 @@ def adminpasswordchange(name):
 def individualaccount(name):
     etc.updateWeekly()
     if 'username' not in session:
+        return abort(403)
         return redirect(url_for('login'))
     this_db = db()
     this_db.connect("data.sql")
@@ -303,6 +305,7 @@ def individualaccount(name):
     isAdmin = this_db.readOne(query)[0]
     if not isAdmin:
         if name != session['username']:
+            return abort(403)
             return redirect(url_for("index"))
 
     account = {}
@@ -373,6 +376,7 @@ def individualaccount(name):
 def adminpanel():
     etc.updateWeekly()
     if 'username' not in session:
+        return abort(403)
         return redirect(url_for('login'))
     this_db = db()
     this_db.connect("data.sql")
@@ -383,6 +387,7 @@ def adminpanel():
 
     isAdmin = this_db.readOne(query)[0]
     if not isAdmin:
+        return abort(403)
         return redirect(url_for("index"))
 
     if request.method == "GET":
@@ -421,12 +426,8 @@ def login():
             return render_template("login.html")
         return redirect(url_for("index"))
         
-    try:
-        test = session['username'] # pain
-        test = None
-        return redirect(url_for('index'))
-    except KeyError:
-        pass
+    if "username" not in session:
+        return redirect(url_for("index"))
 
     this_db = db()
     this_db.connect("data.sql")
@@ -470,6 +471,7 @@ def addaccount():
 
     isAdmin = this_db.readOne(query)[0]
     if not isAdmin:
+        return abort(403)
         return redirect(url_for("index"))
     
     if request.method == 'GET':

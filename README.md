@@ -38,15 +38,13 @@
 
 4. Create default admin account
     - Change username and password in *createadminaccount.py* if desired
-    - Run createadminaccount.py
+    - Run createadminaccount.py with correct arguments
 
-        `python createadminaccount.py`
-
-        *by default, username is admin, password is admin*
+        `python createadminaccount.py [username] [password]`
 
 5. Run flask server
     
-    `python -m flask run`
+    `python main.py`
 
     for debug mode (autorefresh when changes are made):
 

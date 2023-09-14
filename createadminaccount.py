@@ -1,8 +1,9 @@
 import db
 import hashlib
+import sys
 
-username = 'admin'
-password = 'admin'
+username = sys.argv[1]
+password = sys.argv[2]
 
 password = hashlib.sha256(bytes(password, "utf-8")).hexdigest()
 database = db.db()
