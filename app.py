@@ -426,7 +426,7 @@ def login():
             return render_template("login.html")
         return redirect(url_for("index"))
         
-    if "username" not in session:
+    if "username" in session:
         return redirect(url_for("index"))
 
     this_db = db()
