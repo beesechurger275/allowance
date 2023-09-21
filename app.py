@@ -438,7 +438,7 @@ def login():
         return redirect(url_for("login"))
 
     query = f"""
-        SELECT hash FROM users WHERE name='{request.form['username']}';
+        SELECT hash FROM users WHERE name='{sqlsafe(request.form['username'])}';
         """
     try:
         q = this_db.readOne(query)
@@ -454,7 +454,7 @@ def login():
         this_db.close()
         return redirect(url_for("login"))
 
-    session['username'] = request.form['username']
+    session['username'] = sqlsafe(request.form['username'])
     return redirect(url_for("index"))
 
 
@@ -510,7 +510,7 @@ def addaccount():
         birthdate = etc.getDate(birthdate)
 
     query = f"""
-    INSERT INTO users(name, hash, administrator, birthdate) VALUES ('{username}', '{password}', {admin}, '{birthdate}');
+    INSERT INTO users(name, hash, administrator, birthdate) VALUES ('{sqlsafe(username)}', '{sqlsafe(password)}', {sqlsafe(admin)}, '{sqlsafe(birthdate)}');
     """
 
     this_db.execute(query)

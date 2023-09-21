@@ -38,6 +38,7 @@ class db():
         cursor = self.connection.cursor()
         result = None
         try:
+            print(query)
             cursor.execute(query)
             result = cursor.fetchone()
             return result
