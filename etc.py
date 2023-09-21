@@ -71,7 +71,7 @@ def updateWeekly():
                 continue
 
             dob = getDate(read)
-            weekly = int(((now - dob).days) / 365.2425) * 0.75 # might be bad
+            weekly = int(((date - dob).days) / 365.2425) * 0.75 # might be bad
 
             query = f"""
             INSERT INTO
